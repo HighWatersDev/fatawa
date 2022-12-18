@@ -1,0 +1,14 @@
+{{< details "_title_">}}
+- `_title_`
+
+  **سؤال:** _text_
+
+  **جواب**: _text_
+---
+- `_title_`
+
+  **Q:** _text_
+
+  **A:** _text_
+{{< audio src="/audio/upload1526642374358.wav" caption="link to original audio" attrlink="https://">}}
+{{< /details >}}
