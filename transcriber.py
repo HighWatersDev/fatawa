@@ -4,6 +4,7 @@ import time
 import threading
 import wave
 import uuid
+import os
 
 
 try:
@@ -19,18 +20,14 @@ except ImportError:
     sys.exit(1)
 
 
-speech_key = "b7fae795af2d4e7d8ec69cd6c4661aea"
-service_region = "eastus"
-audio_file = "cut_audio_files/upload1526642374358.wav"
-transcript_file = "upload1526642374358.txt"
-
-
-def speech_recognize_cont():
+def speech_recognize_cont(speech_key, service_region, audio_file):
+    transcript_file = f'{audio_file}.txt'
+    audio_file_path = f'cut_audio_files/{audio_file}'
     speech_config = speechsdk.SpeechConfig(subscription=speech_key, region=service_region)
     speech_config.output_format = speechsdk.OutputFormat.Detailed
     speech_config.set_property_by_name("DifferentiateGuestSpeakers", "true")
     speech_config.request_word_level_timestamps()
-    audio_config = speechsdk.audio.AudioConfig(filename=audio_file)
+    audio_config = speechsdk.audio.AudioConfig(filename=audio_file_path)
 
     speech_recognizer = speechsdk.SpeechRecognizer(speech_config=speech_config, audio_config=audio_config,
                                                    language="ar-SA")
@@ -96,4 +93,4 @@ def speech_recognize_cont():
         speech_recognizer.session_stopped.disconnect_all()
 
 
-speech_recognize_cont()
+# speech_recognize_cont()

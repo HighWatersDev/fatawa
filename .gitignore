@@ -10,3 +10,4 @@ gcp_translate_api.json
 .env
 cut_audio_files
 full_audio_files
+__pycache__

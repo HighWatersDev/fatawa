@@ -2,7 +2,7 @@
 from google.cloud import translate
 import os
 
-os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = "focus-loader-185112-7c5ddd15d741.json"
+os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = "gcp_translate_api.json"
 
 
 # Initialize Translation client
@@ -31,8 +31,13 @@ def translate_text(text="YOUR_TEXT_TO_TRANSLATE", project_id="YOUR_PROJECT_ID"):
         return translation.translated_text
 
 
-file = "upload1526642374358.txt"
-with open(f'transcriptions/{file}', "r") as in_file,open(f'translations/{file}', "w") as out_file:
-    text = in_file.read()
-    translated_text = translate_text(text=text, project_id="focus-loader-185112")
-    out_file.write(translated_text)
+def save_translation(file):
+    try:
+        with open(f'transcriptions/{file}', "r") as in_file,open(f'translations/{file}', "w") as out_file:
+            text = in_file.read()
+            translated_text = translate_text(text=text, project_id="focus-loader-185112")
+            out_file.write(translated_text)
+        return True
+    except Exception as err:
+        print(err)
+        return False
