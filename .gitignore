@@ -1,0 +1,12 @@
+### Example user template template
+### Example user template
+
+# IntelliJ project files
+.idea
+*.iml
+out
+gen
+gcp_translate_api.json
+.env
+cut_audio_files
+full_audio_files
