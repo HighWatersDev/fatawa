@@ -16,10 +16,10 @@ start_sec = 49
 end_min = 60
 end_sec = 28
 file_name = "33827"
+folder = "albadr"
 speech_key = os.getenv("SPEECH_KEY")
 service_region = os.getenv("SERVICE_REGION")
-audio_file = "33827.wav"
-folder = "albadr"
+audio_file = f'{file_name}.wav'
 trim = False
 
 
