@@ -1,7 +1,7 @@
 from itertools import islice
 
 
-def fatawa_template_ar(title, q, a):
+def fatawa_template_ar(title, q, a, audio_link):
     fatwa_template = f'''
 
 <details>
@@ -10,7 +10,12 @@ def fatawa_template_ar(title, q, a):
 </summary>
 
 **سؤال:** {q}
+
 **جواب:** {a}
+
+<audio controls>
+<source src="{audio_link}"/>
+</audio>
 
 </details>
 
