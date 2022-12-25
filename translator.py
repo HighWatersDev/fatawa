@@ -31,9 +31,9 @@ def translate_text(text="YOUR_TEXT_TO_TRANSLATE", project_id="YOUR_PROJECT_ID"):
         return translation.translated_text
 
 
-def save_translation(file):
+def save_translation(file, folder):
     try:
-        with open(f'transcriptions/{file}', "r") as in_file,open(f'translations/{file}', "w") as out_file:
+        with open(f'transcriptions/{folder}/{file}', "r") as in_file,open(f'translations/{folder}/{file}', "w") as out_file:
             text = in_file.read()
             translated_text = translate_text(text=text, project_id="focus-loader-185112")
             out_file.write(translated_text)

@@ -1,0 +1,23 @@
+{
+	"folders": [
+		{
+			"path": "../../../GolandProjects"
+		},
+		{
+			"path": "../../../GolandProjects/go/go-api"
+		},
+		{
+			"path": "../../../GolandProjects/go/go-rest-api"
+		},
+		{
+			"path": "../../docs"
+		},
+		{
+			"path": ".."
+		}
+	],
+	"settings": {
+		"liveServer.settings.multiRootWorkspaceName": "go-api",
+		"cSpell.language": "en,ar"
+	}
+}

@@ -20,9 +20,9 @@ except ImportError:
     sys.exit(1)
 
 
-def speech_recognize_cont(speech_key, service_region, audio_file):
+def speech_recognize_cont(speech_key, service_region, audio_file, folder):
     transcript_file = f'{audio_file}.txt'
-    audio_file_path = f'cut_audio_files/{audio_file}'
+    audio_file_path = f'cut_audio_files/{folder}/{audio_file}'
     speech_config = speechsdk.SpeechConfig(subscription=speech_key, region=service_region)
     speech_config.output_format = speechsdk.OutputFormat.Detailed
     speech_config.set_property_by_name("DifferentiateGuestSpeakers", "true")
@@ -41,7 +41,7 @@ def speech_recognize_cont(speech_key, service_region, audio_file):
         if evt.result.reason == speechsdk.ResultReason.RecognizedSpeech:
             print("Recognized: {}".format(evt))
             text.append(evt.result.text)
-            with open(f'transcriptions/{transcript_file}', "a") as f:
+            with open(f'transcriptions/{folder}/{transcript_file}', "a") as f:
                 f.write(evt.result.text)
         elif evt.result.reason == speechsdk.ResultReason.NoMatch:
             print("No speech could be recognized: {}".format(evt.result.no_match_details))
