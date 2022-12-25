@@ -3,6 +3,8 @@ from os.path import join, dirname
 import audio_editor as ae
 import transcriber as trc
 import translator as trl
+import audio_storage as stor
+import build_mdx as mdx
 
 from dotenv import load_dotenv
 
@@ -29,3 +31,10 @@ if __name__ == "__main__":
     response = input("Is transcription ready for translation?\n")
     if response == "y":
         trl.save_translation(f'{audio_file}.txt', folder)
+    response = input("Is audio ready to be uploaded?\n")
+    if response == "y":
+        stor.upload_audio(folder, audio_file)
+    response = input("Is it ready to build template?\n")
+    if response == "y":
+        mdx.build_fatawa_ar(folder, f'{audio_file}.txt')
+        mdx.build_fatawa_en(folder, f'{audio_file}.txt')

@@ -63,8 +63,3 @@ def build_fatawa_en(folder, file):
             answers.append(line2.rstrip("\n"))
     for i in range(len(questions)):
         fatawa_template_en("Title", questions[i], answers[i])
-
-
-a = ["albadr", "33827.wav.txt"]
-build_fatawa_ar(a[0], a[1])
-build_fatawa_en(a[0], a[1])
