@@ -39,7 +39,7 @@ def fatawa_template_en(title, q, a):
     print(fatwa_template)
 
 
-def build_fatawa_ar(folder, file):
+def build_fatawa_ar(folder, file, audio_link):
     questions = []
     answers = []
     with open(f'transcriptions/{folder}/{file}', 'r') as file1, \
@@ -49,7 +49,7 @@ def build_fatawa_ar(folder, file):
         for line2 in islice(file2, 1, None, 2):
             answers.append(line2.rstrip("\n"))
     for i in range(len(questions)):
-        fatawa_template_ar("عنوان", questions[i], answers[i])
+        fatawa_template_ar("عنوان", questions[i], answers[i], audio_link)
 
 
 def build_fatawa_en(folder, file):
