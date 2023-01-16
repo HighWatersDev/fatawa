@@ -40,6 +40,7 @@ def speech_recognize_cont(speech_key, service_region, audio_file, folder):
         #             result.append(evt.result.text)
         if evt.result.reason == speechsdk.ResultReason.RecognizedSpeech:
             print("Recognized: {}".format(evt))
+            print("Offset: {}".format(evt.result.offset))
             text.append(evt.result.text)
             with open(f'transcriptions/{folder}/{transcript_file}', "a") as f:
                 f.write(evt.result.text)
@@ -91,6 +92,3 @@ def speech_recognize_cont(speech_key, service_region, audio_file, folder):
         speech_recognizer.recognized.disconnect_all()
         speech_recognizer.session_started.disconnect_all()
         speech_recognizer.session_stopped.disconnect_all()
-
-
-# speech_recognize_cont()
