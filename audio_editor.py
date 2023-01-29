@@ -1,4 +1,17 @@
 from pydub import AudioSegment
+import os
+
+
+def check_folder(folder):
+    print(f'Checking if {folder} exists')
+    if not os.path.isdir(f'acc_audio_files/{folder}'):
+        try:
+            print(f'{folder} doesn\'t exist. Creating it.')
+            os.makedirs(f'acc_audio_files/{folder}')
+        except Exception as err:
+            print(err)
+    else:
+        print(f'{folder} exists. Carrying on...')
 
 
 def edit_audio(file_name, folder, start_min, start_sec, end_min, end_sec, trim):
@@ -16,4 +29,16 @@ def edit_audio(file_name, folder, start_min, start_sec, end_min, end_sec, trim):
         return True
     except Exception as err:
         print("Error: Failed to edit audio file: ", err)
+        return False
+
+
+def convert_to_acc(file_name, folder):
+    check_folder(folder)
+    try:
+        audio_file = AudioSegment.from_wav(f'cut_audio_files/{folder}/{file_name}')
+        acc_file = audio_file.export(f'acc_audio_files/{folder}/{file_name}.acc', format="adts", bitrate="32k")
+        print(f'Successfully converted audio file: {acc_file}')
+        return True
+    except Exception as err:
+        print(err)
         return False

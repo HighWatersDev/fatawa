@@ -5,6 +5,15 @@ import os
 os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = "gcp_translate_api.json"
 
 
+def check_folder(folder):
+    print(f'Checking if {folder} exists')
+    if not os.path.isdir(f'translations/{folder}'):
+        print(f'{folder} doesn\'t exist. Creating it.')
+        os.makedirs(f'translations/{folder}')
+    else:
+        print(f'{folder} exists. Carrying on...')
+
+
 # Initialize Translation client
 def translate_text(text="YOUR_TEXT_TO_TRANSLATE", project_id="YOUR_PROJECT_ID"):
     """Translating Text."""
@@ -32,8 +41,10 @@ def translate_text(text="YOUR_TEXT_TO_TRANSLATE", project_id="YOUR_PROJECT_ID"):
 
 
 def save_translation(file, folder):
+    check_folder(folder)
     try:
-        with open(f'transcriptions/{folder}/{file}', "r") as in_file,open(f'translations/{folder}/{file}', "w") as out_file:
+        with open(f'transcriptions/{folder}/{file}', "r") as in_file,\
+                open(f'translations/{folder}/{file}', "w") as out_file:
             text = in_file.read()
             translated_text = translate_text(text=text, project_id="salafifatawa")
             out_file.write(translated_text)

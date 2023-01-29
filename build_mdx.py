@@ -1,8 +1,6 @@
-from itertools import islice
-
-
-def fatawa_template_ar(title, q, a, audio_link):
+def fatawa_template_ar(topic, title, q, a, audio_link):
     fatwa_template = f'''
+{topic}
 
 <details>
 < summary style={{{{fontWeight: "bold"}}}}>
@@ -23,8 +21,10 @@ def fatawa_template_ar(title, q, a, audio_link):
     print(fatwa_template)
 
 
-def fatawa_template_en(title, q, a):
+def fatawa_template_en(topic, title, q, a):
     fatwa_template = f'''
+{topic}
+
 <details>
 <summary style={{{{fontWeight: "bold"}}}}>
 {title} 📃
@@ -39,27 +39,11 @@ def fatawa_template_en(title, q, a):
     print(fatwa_template)
 
 
-def build_fatawa_ar(folder, file, audio_link):
-    questions = []
-    answers = []
-    with open(f'transcriptions/{folder}/{file}', 'r') as file1, \
-         open(f'transcriptions/{folder}/{file}', 'r') as file2:
-        for line1 in islice(file1, 0, None, 2):
-            questions.append(line1.rstrip("\n"))
-        for line2 in islice(file2, 1, None, 2):
-            answers.append(line2.rstrip("\n"))
-    for i in range(len(questions)):
-        fatawa_template_ar("عنوان", questions[i], answers[i], audio_link)
-
-
-def build_fatawa_en(folder, file):
-    questions = []
-    answers = []
-    with open(f'translations/{folder}/{file}', 'r') as file1, \
-         open(f'translations/{folder}/{file}', 'r') as file2:
-        for line1 in islice(file1, 0, None, 2):
-            questions.append(line1.rstrip("\n"))
-        for line2 in islice(file2, 1, None, 2):
-            answers.append(line2.rstrip("\n"))
-    for i in range(len(questions)):
-        fatawa_template_en("Title", questions[i], answers[i])
+def build_fatawa(folder, file, audio_link):
+    print("folder: ", folder, " file: ", file)
+    with open(f'transcriptions/{folder}/{file}', 'r') as file1:
+        data = file1.readlines()
+        fatawa_template_ar(topic=data[0].rstrip('\n'), title=data[1].rstrip('\n'), q=data[2].rstrip('\n'), a=data[3].rstrip('\n'), audio_link=audio_link)
+    with open(f'translations/{folder}/{file}', 'r') as file2:
+        data = file2.readlines()
+        fatawa_template_en(topic=data[0].rstrip('\n'), title=data[1].rstrip('\n'), q=data[2].rstrip('\n'), a=data[3].rstrip('\n'))

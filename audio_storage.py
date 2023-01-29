@@ -20,7 +20,7 @@ def upload_audio(folder, file):
 
         # Upload the created file
         print("\nUploading to Azure Storage as blob:\n\t" + file)
-        with open(file=f'cut_audio_files/{folder}/{file}', mode="rb") as data:
+        with open(file=f'acc_audio_files/{folder}/{file}', mode="rb") as data:
             blob_client.upload_blob(data)
             print("File has been uploaded")
 

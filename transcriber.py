@@ -20,7 +20,17 @@ except ImportError:
     sys.exit(1)
 
 
+def check_folder(folder):
+    print(f'Checking if {folder} exists')
+    if not os.path.isdir(f'transcriptions/{folder}'):
+        print(f'{folder} doesn\'t exist. Creating it.')
+        os.makedirs(f'transcriptions/{folder}')
+    else:
+        print(f'{folder} exists. Carrying on...')
+
+
 def speech_recognize_cont(speech_key, service_region, audio_file, folder):
+    check_folder(folder)
     transcript_file = f'{audio_file}.txt'
     audio_file_path = f'cut_audio_files/{folder}/{audio_file}'
     speech_config = speechsdk.SpeechConfig(subscription=speech_key, region=service_region)
