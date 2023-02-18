@@ -5,6 +5,7 @@ import threading
 import wave
 import uuid
 import os
+from api.utils.utils import az_list_blobs
 
 
 try:
@@ -29,8 +30,15 @@ def check_folder(folder):
         print(f'{folder} exists. Carrying on...')
 
 
-def speech_recognize_cont(speech_key, service_region, audio_file, folder):
-    check_folder(folder)
+async def download_files(scholar, folder):
+    container = "acc-audio-files"
+    path = f'{scholar}/{folder}'
+    files = az_list_blobs(container, path)
+    return files
+
+
+def speech_recognize_cont(speech_key, service_region, audio_file, scholar, folder):
+
     transcript_file = f'{audio_file}.txt'
     audio_file_path = f'cut_audio_files/{folder}/{audio_file}'
     speech_config = speechsdk.SpeechConfig(subscription=speech_key, region=service_region)
