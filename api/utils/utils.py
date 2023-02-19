@@ -47,6 +47,15 @@ def az_list_blobs(container="CONTAINER", path="SCHOLAR/FOLDER"):
     return blobs
 
 
+def az_download_blobs(container, blobs, path):
+    container_client = blob_service_client.get_container_client(container)
+    for blob in blobs:
+        blob_client = container_client.get_blob_client(blob)
+        with open(path, "wb") as my_blob:
+            download_stream = blob_client.download_blob()
+            my_blob.write(download_stream.readall())
+
+
 def az_store_upload(folder, file):
     try:
         blob_client = blob_service_client.get_blob_client(container=folder, blob=file)
@@ -72,11 +81,6 @@ def az_store_upload(folder, file):
                 exit(1)
     except Exception as err:
         print(err)
-
-
-#az_store_upload('acc-audio-files/ruhayli/upload1527509523166', '1.wav.acc')
-#print(az_list_containers())
-#print(az_list_containers('acc-audio-files', 'ruhayli/upload1527509523166'))
 
 
 def upload_audio(folder, file):
@@ -113,3 +117,9 @@ def make_dirs(scholar: str, folder: str):
         dir_path = Path(get_project_root(), dir).joinpath()
         if dir_path.is_dir():
             print(dir_path)
+
+
+def az_main(container="CONTAINER", path="SCHOLAR/FOLDER"):
+    blobs = az_list_blobs(container, path)
+    local_blob_path = f'{ROOT_DIR}/{container}/{path}'
+    az_download_blobs(container, blobs, local_blob_path)
