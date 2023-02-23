@@ -10,7 +10,7 @@ out
 gen
 gcp_translate_api.json
 .env
-cut_audio_files
+cut-audio-files
 full_audio_files
 completed_audio_files
 acc_audio_files

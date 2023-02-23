@@ -5,8 +5,16 @@ import threading
 import wave
 import uuid
 import os
-from api.utils.utils import az_list_blobs
+from os.path import join, dirname
+from api.utils.utils import az_main, az_upload
 
+from dotenv import load_dotenv
+
+dotenv_path = join(dirname(__file__), '.env')
+load_dotenv(dotenv_path)
+
+speech_key = os.getenv("SPEECH_KEY")
+service_region = os.getenv("SERVICE_REGION")
 
 try:
     import azure.cognitiveservices.speech as speechsdk
@@ -30,17 +38,21 @@ def check_folder(folder):
         print(f'{folder} exists. Carrying on...')
 
 
-async def download_files(scholar, folder):
-    container = "acc-audio-files"
+def download_files(scholar, folder):
+    container = "cut-audio-files"
     path = f'{scholar}/{folder}'
-    files = az_list_blobs(container, path)
-    return files
+    return az_main(container, path)
 
 
-def speech_recognize_cont(speech_key, service_region, audio_file, scholar, folder):
+def speech_recognize_cont(speech_key, service_region, container, audio_file, scholar, folder):
 
     transcript_file = f'{audio_file}.txt'
-    audio_file_path = f'cut_audio_files/{folder}/{audio_file}'
+    audio_file_path = f'{container}/{scholar}/{folder}/{audio_file}'
+    transcription_path = f'transcriptions/{scholar}/{folder}/{transcript_file}'
+    try:
+        os.makedirs(os.path.dirname(transcription_path), exist_ok=True)
+    except Exception:
+        exit(1)
     speech_config = speechsdk.SpeechConfig(subscription=speech_key, region=service_region)
     speech_config.output_format = speechsdk.OutputFormat.Detailed
     speech_config.set_property_by_name("DifferentiateGuestSpeakers", "true")
@@ -60,7 +72,7 @@ def speech_recognize_cont(speech_key, service_region, audio_file, scholar, folde
             print("Recognized: {}".format(evt))
             print("Offset: {}".format(evt.result.offset))
             text.append(evt.result.text)
-            with open(f'transcriptions/{folder}/{transcript_file}', "a") as f:
+            with open(transcription_path, "a") as f:
                 f.write(evt.result.text)
         elif evt.result.reason == speechsdk.ResultReason.NoMatch:
             print("No speech could be recognized: {}".format(evt.result.no_match_details))
@@ -110,3 +122,13 @@ def speech_recognize_cont(speech_key, service_region, audio_file, scholar, folde
         speech_recognizer.recognized.disconnect_all()
         speech_recognizer.session_started.disconnect_all()
         speech_recognizer.session_stopped.disconnect_all()
+
+
+async def az_transcribe(container, scholar, folder):
+    if download_files(scholar, folder):
+        for audio_file in os.listdir(f'{container}/{scholar}/{folder}'):
+            try:
+                speech_recognize_cont(speech_key, service_region, audio_file, scholar, folder)
+                az_upload("transcriptions", f'{scholar}/{folder}/{audio_file}.txt')
+            except Exception as err:
+                return err

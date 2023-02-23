@@ -2,8 +2,9 @@ import uvicorn
 from fastapi import FastAPI, HTTPException
 from typing import Optional, List
 from utils import az_list_containers, az_list_blobs
+from upload import DirectoryClient
 import transcriber as trc
-from transcriber import download_files
+from transcriber import az_transcribe
 
 from fastapi.middleware.cors import CORSMiddleware
 
@@ -29,8 +30,15 @@ async def get_todo():
 
 @app.get("/api/transcribe/")
 async def get_files(scholar: str, folder: str):
-    return await download_files(scholar, folder)
+    return await az_transcribe("acc-audio-files", scholar, folder)
 
+
+@app.get("/api/upload")
+async def upload_files(path: str):
+    container = path.rsplit("/")[0]
+    blob = path.rsplit("/")[1]
+    client = DirectoryClient(container)
+    return client.upload(path, blob)
 
 if __name__ == "__main__":
     uvicorn.run("utils_api:app")

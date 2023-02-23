@@ -47,22 +47,26 @@ def az_list_blobs(container="CONTAINER", path="SCHOLAR/FOLDER"):
     return blobs
 
 
-def az_download_blobs(container, blobs, path):
-    container_client = blob_service_client.get_container_client(container)
-    for blob in blobs:
+def az_download_blobs(container, blob, path):
+    try:
+        container_client = blob_service_client.get_container_client(container)
         blob_client = container_client.get_blob_client(blob)
+        os.makedirs(os.path.dirname(path), exist_ok=True)
         with open(path, "wb") as my_blob:
             download_stream = blob_client.download_blob()
             my_blob.write(download_stream.readall())
+        return True
+    except Exception:
+        return False
 
 
-def az_store_upload(folder, file):
+def az_upload(container, blob):
     try:
-        blob_client = blob_service_client.get_blob_client(container=folder, blob=file)
+        blob_client = blob_service_client.get_blob_client(container=container, blob=blob)
 
         # Upload the created file
-        print("\nUploading to Azure Storage as blob:\n\t" + file)
-        with open(file=f'{ROOT_DIR}/{folder}/{file}', mode="rb") as data:
+        print("\nUploading to Azure Storage as blob:\n\t" + blob)
+        with open(file=f'{ROOT_DIR}/{container}/{blob}', mode="rb") as data:
             blob_client.upload_blob(data)
             print("File has been uploaded")
 
@@ -70,7 +74,7 @@ def az_store_upload(folder, file):
         print(err)
 
     try:
-        container_client = blob_service_client.get_container_client(folder)
+        container_client = blob_service_client.get_container_client(container)
 
         blob_list = container_client.list_blobs()
         for blob in blob_list:
@@ -83,35 +87,8 @@ def az_store_upload(folder, file):
         print(err)
 
 
-def upload_audio(folder, file):
+def make_dirs(path):
 
-    try:
-        blob_client = blob_service_client.get_blob_client(container=folder, blob=file)
-
-        # Upload the created file
-        print("\nUploading to Azure Storage as blob:\n\t" + file)
-        with open(file=f'acc_audio_files/{folder}/{file}', mode="rb") as data:
-            blob_client.upload_blob(data)
-            print("File has been uploaded")
-
-    except Exception as err:
-        print(err)
-
-    try:
-        container_client = blob_service_client.get_container_client(folder)
-
-        blob_list = container_client.list_blobs()
-        for blob in blob_list:
-            if blob:
-                print(f'Blob {blob.name} is found')
-            else:
-                print(f'Blob {blob.name} was not found')
-                exit(1)
-    except Exception as err:
-        print(err)
-
-
-def make_dirs(scholar: str, folder: str):
     dirs = ['acc_audio_files', 'cut_audio_files', 'transcriptions', 'translations', 'wrong']
     for dir in dirs:
         dir_path = Path(get_project_root(), dir).joinpath()
@@ -120,6 +97,11 @@ def make_dirs(scholar: str, folder: str):
 
 
 def az_main(container="CONTAINER", path="SCHOLAR/FOLDER"):
-    blobs = az_list_blobs(container, path)
-    local_blob_path = f'{ROOT_DIR}/{container}/{path}'
-    az_download_blobs(container, blobs, local_blob_path)
+    try:
+        blobs = az_list_blobs(container, path)
+        for blob in blobs:
+            local_blob_path = f'{ROOT_DIR}/{container}/{blob}'
+            az_download_blobs(container, blob, local_blob_path)
+        return True
+    except Exception:
+        return False
