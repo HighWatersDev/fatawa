@@ -38,20 +38,28 @@ class DirectoryClient:
         """
         Upload a single file to a path inside the container
         """
-        print(f'Uploading {source} to {dest}')
-        with open(source, 'rb') as data:
-            self.client.upload_blob(name=dest, data=data)
+        try:
+            print(f'Uploading {source} to {dest}')
+            with open(source, 'rb') as data:
+                self.client.upload_blob(name=dest, data=data)
+            return True
+        except Exception:
+            return False
 
     def upload_dir(self, source, dest):
         """
         Upload a directory to a path inside the container
         """
-        prefix = '' if dest == '' else dest + '/'
-        prefix += os.path.basename(source) + '/'
-        for root, dirs, files in os.walk(source):
-            for name in files:
-                dir_part = os.path.relpath(root, source)
-                dir_part = '' if dir_part == '.' else dir_part + '/'
-                file_path = os.path.join(root, name)
-                blob_path = prefix + dir_part + name
-                self.upload_file(file_path, blob_path)
+        try:
+            prefix = '' if dest == '' else dest + '/'
+            prefix += os.path.basename(source) + '/'
+            for root, dirs, files in os.walk(source):
+                for name in files:
+                    dir_part = os.path.relpath(root, source)
+                    dir_part = '' if dir_part == '.' else dir_part + '/'
+                    file_path = os.path.join(root, name)
+                    blob_path = prefix + dir_part + name
+                    self.upload_file(file_path, blob_path)
+            return True
+        except Exception:
+            return False
