@@ -2,18 +2,13 @@ import uvicorn
 from fastapi import FastAPI, HTTPException
 from typing import Optional, List
 #from utils import az_list_containers, az_list_blobs
-from utils import DirectoryClient
+from utils.azstorage import DirectoryClient
 import tempfile
-from pathlib import Path
-#import transcriber as trc
+from utils.project_root import get_project_root
+from utils import transcriber
 #from transcriber import az_transcribe
 
 from fastapi.middleware.cors import CORSMiddleware
-
-
-def get_project_root():
-    root_dir = Path(__file__).absolute().parent.parent.parent
-    return root_dir
 
 
 app = FastAPI()
@@ -60,20 +55,14 @@ async def list_files(path: str):
         return tmpdir
 
 
+@app.get("/api/transcribe")
+async def transcribe_fatawa(blob: str):
+    response = await transcriber.transcribe(blob)
+    if response:
+        return True
+    else:
+        return False
+
+
 if __name__ == "__main__":
     uvicorn.run("utils_api:app")
-
-# @app.post("/api/todo/", response_model=Todo)
-# async def post_todo(todo: Todo):
-#     response = await create_todo(todo.dict())
-#     if response:
-#         return response
-#     raise HTTPException(400, "Something went wrong")
-#
-#
-# @app.put("/api/todo/{title}/", response_model=Todo)
-# async def put_todo(title: str, desc: str):
-#     response = await update_todo(title, desc)
-#     if response:
-#         return response
-#     raise HTTPException(404, f"There is no todo with the title {title}")

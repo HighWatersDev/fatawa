@@ -6,7 +6,7 @@ import wave
 import uuid
 import os
 from os.path import join, dirname
-from api.utils.utils import az_main, az_upload
+from project_root import get_project_root
 
 from dotenv import load_dotenv
 
@@ -15,6 +15,8 @@ load_dotenv(dotenv_path)
 
 speech_key = os.getenv("SPEECH_KEY")
 service_region = os.getenv("SERVICE_REGION")
+src_folder = os.getenv("TRANSCRIBER_SRC_FOLDER", "cut-audio-files")
+dst_folder = os.getenv("TRANSCRIBER_DST_FOLDER", "transcriptions")
 
 try:
     import azure.cognitiveservices.speech as speechsdk
@@ -29,26 +31,21 @@ except ImportError:
     sys.exit(1)
 
 
-def check_folder(folder):
-    print(f'Checking if {folder} exists')
-    if not os.path.isdir(f'transcriptions/{folder}'):
-        print(f'{folder} doesn\'t exist. Creating it.')
-        os.makedirs(f'transcriptions/{folder}')
-    else:
-        print(f'{folder} exists. Carrying on...')
+def check_folder():
+    folders = [src_folder, dst_folder]
+    for folder in folders:
+        print(f'Checking if {folder} exists')
+        if not os.path.isdir(f'{get_project_root()}/{folder}'):
+            print(f'{folder} doesn\'t exist. Creating it.')
+            os.makedirs(f'{get_project_root()}/{folder}')
+        else:
+            print(f'{folder} exists. Carrying on...')
 
 
-def download_files(scholar, folder):
-    container = "cut-audio-files"
-    path = f'{scholar}/{folder}'
-    return az_main(container, path)
+def speech_recognize_cont(audio_file, blob):
 
-
-def speech_recognize_cont(speech_key, service_region, container, audio_file, scholar, folder):
-
-    transcript_file = f'{audio_file}.txt'
-    audio_file_path = f'{container}/{scholar}/{folder}/{audio_file}'
-    transcription_path = f'transcriptions/{scholar}/{folder}/{transcript_file}'
+    audio_file_path = f'{src_folder}/{blob}/{audio_file}'
+    transcription_path = f'{dst_folder}/{blob}/{audio_file}.txt'
     try:
         os.makedirs(os.path.dirname(transcription_path), exist_ok=True)
     except Exception:
@@ -124,11 +121,8 @@ def speech_recognize_cont(speech_key, service_region, container, audio_file, sch
         speech_recognizer.session_stopped.disconnect_all()
 
 
-async def az_transcribe(container, scholar, folder):
-    if download_files(scholar, folder):
-        for audio_file in os.listdir(f'{container}/{scholar}/{folder}'):
-            try:
-                speech_recognize_cont(speech_key, service_region, audio_file, scholar, folder)
-                az_upload("transcriptions", f'{scholar}/{folder}/{audio_file}.txt')
-            except Exception as err:
-                return err
+async def transcribe(blob):
+    check_folder()
+    audio_files = os.listdir(blob)
+    for audio_file in audio_files:
+        speech_recognize_cont(audio_file, blob)
