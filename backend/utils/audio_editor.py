@@ -1,13 +1,17 @@
 from pydub import AudioSegment
 import os
+from backend.utils import project_root
+
+root_path = project_root.get_project_root()
+artifacts = f'{root_path}/artifacts'
 
 
 def check_folder(folder):
     print(f'Checking if {folder} exists')
-    if not os.path.isdir(f'acc_audio_files/{folder}'):
+    if not os.path.isdir(f'{folder}'):
         try:
             print(f'{folder} doesn\'t exist. Creating it.')
-            os.makedirs(f'acc_audio_files/{folder}')
+            os.makedirs(f'{folder}')
         except Exception as err:
             print(err)
     else:
@@ -32,12 +36,17 @@ def edit_audio(file_name, folder, start_min, start_sec, end_min, end_sec, trim):
         return False
 
 
-def convert_to_acc(file_name, folder):
-    check_folder(folder)
+async def convert_to_acc(blob):
+    src_folder = os.getenv("CONVERT_ACC_SRC_FOLDER", "cut-audio-files")
+    dst_folder = os.getenv("CONVERT_ACC_DST_FOLDER", "acc-audio-files")
+    check_folder(f'{artifacts}/{src_folder}/{blob}')
+    check_folder(f'{artifacts}/{dst_folder}/{blob}')
+    files = os.listdir(f'{artifacts}/{src_folder}/{blob}')
     try:
-        audio_file = AudioSegment.from_wav(f'cut_audio_files/{folder}/{file_name}')
-        acc_file = audio_file.export(f'acc_audio_files/{folder}/{file_name}.acc', format="adts", bitrate="32k")
-        print(f'Successfully converted audio file: {acc_file}')
+        for audio_file in files:
+            audio_file = AudioSegment.from_wav(f'{artifacts}/{src_folder}/{blob}/{audio_file}')
+            acc_file = audio_file.export(f'{artifacts}/{dst_folder}/{blob}/{audio_file}.acc', format="adts", bitrate="32k")
+            print(f'Successfully converted audio file: {acc_file}')
         return True
     except Exception as err:
         print(err)

@@ -2,16 +2,11 @@ from pathlib import Path
 import os
 from os.path import join
 from azure.storage.blob import BlobServiceClient
-
+from backend.utils import project_root
 from dotenv import load_dotenv
 
 
-def get_project_root():
-    root_dir = Path(__file__).absolute().parent.parent.parent
-    return root_dir
-
-
-ROOT_DIR = get_project_root()
+ROOT_DIR = f'{project_root.get_project_root()}/artifacts'
 dotenv_path = join(ROOT_DIR, '.env')
 load_dotenv(dotenv_path)
 
@@ -70,6 +65,7 @@ class DirectoryClient:
         """
         if not dest:
             raise Exception('A destination must be provided')
+        dest = f'{ROOT_DIR}/{dest}'
 
         blobs = self.ls_files(source, recursive=True)
         if blobs:

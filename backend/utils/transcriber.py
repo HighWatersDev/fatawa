@@ -6,12 +6,15 @@ import wave
 import uuid
 import os
 from os.path import join, dirname
-from project_root import get_project_root
+from backend.utils import project_root
 
 from dotenv import load_dotenv
 
 dotenv_path = join(dirname(__file__), '.env')
 load_dotenv(dotenv_path)
+
+ROOT = project_root.get_project_root()
+artifacts = f'{ROOT}/artifacts'
 
 speech_key = os.getenv("SPEECH_KEY")
 service_region = os.getenv("SERVICE_REGION")
@@ -35,17 +38,17 @@ def check_folder():
     folders = [src_folder, dst_folder]
     for folder in folders:
         print(f'Checking if {folder} exists')
-        if not os.path.isdir(f'{get_project_root()}/{folder}'):
+        if not os.path.isdir(f'{artifacts}/{folder}'):
             print(f'{folder} doesn\'t exist. Creating it.')
-            os.makedirs(f'{get_project_root()}/{folder}')
+            os.makedirs(f'{artifacts}/{folder}')
         else:
             print(f'{folder} exists. Carrying on...')
 
 
 def speech_recognize_cont(audio_file, blob):
 
-    audio_file_path = f'{src_folder}/{blob}/{audio_file}'
-    transcription_path = f'{dst_folder}/{blob}/{audio_file}.txt'
+    audio_file_path = f'{artifacts}/{src_folder}/{blob}/{audio_file}'
+    transcription_path = f'{artifacts}/{dst_folder}/{blob}/{audio_file}.txt'
     try:
         os.makedirs(os.path.dirname(transcription_path), exist_ok=True)
     except Exception:
@@ -123,6 +126,7 @@ def speech_recognize_cont(audio_file, blob):
 
 async def transcribe(blob):
     check_folder()
-    audio_files = os.listdir(blob)
+    path = f'{artifacts}/{blob}'
+    audio_files = os.listdir(path)
     for audio_file in audio_files:
         speech_recognize_cont(audio_file, blob)
