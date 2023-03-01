@@ -6,7 +6,8 @@ from backend.utils import project_root
 from dotenv import load_dotenv
 
 
-ROOT_DIR = f'{project_root.get_project_root()}/artifacts'
+ROOT_DIR = project_root.get_project_root()
+artifacts = f'{ROOT_DIR}/artifacts'
 dotenv_path = join(ROOT_DIR, '.env')
 load_dotenv(dotenv_path)
 
@@ -23,7 +24,7 @@ class DirectoryClient:
         """
         Upload a file or directory to a path inside the container
         """
-        source = f'{ROOT_DIR}/{source}'
+        source = f'{artifacts}/{source}'
         if os.path.isdir(source):
             self.upload_dir(source, dest)
         else:
@@ -65,7 +66,7 @@ class DirectoryClient:
         """
         if not dest:
             raise Exception('A destination must be provided')
-        dest = f'{ROOT_DIR}/{dest}'
+        dest = f'{artifacts}/{dest}'
 
         blobs = self.ls_files(source, recursive=True)
         if blobs:

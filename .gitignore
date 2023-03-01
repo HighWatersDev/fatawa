@@ -1,7 +1,3 @@
-### Example user template template
-### Example user template
-
-# IntelliJ project files
 .idea
 .vscode
 *.code-workspace
@@ -10,9 +6,6 @@ out
 gen
 gcp_translate_api.json
 .env
-cut-audio-files
-full_audio_files
-completed_audio_files
-acc_audio_files
 __pycache__
 .DS_Store
+artifacts
