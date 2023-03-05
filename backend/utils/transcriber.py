@@ -10,10 +10,10 @@ from backend.utils import project_root
 
 from dotenv import load_dotenv
 
-dotenv_path = join(dirname(__file__), '.env')
+ROOT = project_root.get_project_root()
+dotenv_path = join(ROOT, '.env')
 load_dotenv(dotenv_path)
 
-ROOT = project_root.get_project_root()
 artifacts = f'{ROOT}/artifacts'
 
 speech_key = os.getenv("SPEECH_KEY")
@@ -47,7 +47,7 @@ def check_folder():
 
 def speech_recognize_cont(audio_file, blob):
 
-    audio_file_path = f'{artifacts}/{src_folder}/{blob}/{audio_file}'
+    audio_file_path = f'{artifacts}//{blob}/{audio_file}'
     transcription_path = f'{artifacts}/{dst_folder}/{blob}/{audio_file}.txt'
     try:
         os.makedirs(os.path.dirname(transcription_path), exist_ok=True)

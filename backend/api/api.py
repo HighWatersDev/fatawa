@@ -41,10 +41,10 @@ async def list_files(path: str):
     container = path.rsplit("/")[0]
     blob = '/'.join(path.rsplit("/")[1:])
     client = DirectoryClient(container)
-    with tempfile.TemporaryDirectory(dir=ROOT) as tmpdir:
-        response = client.download(blob, tmpdir)
+    dst = f'{ROOT}/artifacts'
+    response = client.download(blob, dst)
     if response:
-        return tmpdir
+        return True
 
 
 @app.get("/api/transcribe")
