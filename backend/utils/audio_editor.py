@@ -37,8 +37,8 @@ def edit_audio(file_name, folder, start_min, start_sec, end_min, end_sec, trim):
 
 
 async def convert_to_acc(blob):
-    src_folder = os.getenv("CONVERT_ACC_SRC_FOLDER", "cut-audio-files")
-    dst_folder = os.getenv("CONVERT_ACC_DST_FOLDER", "acc-audio-files")
+    src_folder = os.getenv("CONVERT_ACC_SRC_FOLDER", "fatwa-audio-wav")
+    dst_folder = os.getenv("CONVERT_ACC_DST_FOLDER", "fatwa-audio-acc")
     check_folder(f'{artifacts}/{src_folder}/{blob}')
     check_folder(f'{artifacts}/{dst_folder}/{blob}')
     files = os.listdir(f'{artifacts}/{src_folder}/{blob}')

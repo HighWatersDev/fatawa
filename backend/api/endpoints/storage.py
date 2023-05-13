@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException
 
 from backend.auth.validate_token import validate_user
-from backend.utils.azstorage import DirectoryClient
+from backend.utils.azure_storage import DirectoryClient
 from backend.utils import project_root
 
 router = APIRouter()

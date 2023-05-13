@@ -8,7 +8,8 @@ from dotenv import load_dotenv
 
 ROOT_DIR = project_root.get_project_root()
 artifacts = f'{ROOT_DIR}/artifacts'
-dotenv_path = join(ROOT_DIR, '.env')
+config_path = f'/{ROOT_DIR}/backend/config'
+dotenv_path = join(config_path, '.env')
 load_dotenv(dotenv_path)
 
 account_url = "https://fatawaaudio.blob.core.windows.net"

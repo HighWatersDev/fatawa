@@ -11,14 +11,15 @@ from backend.utils import project_root
 from dotenv import load_dotenv
 
 ROOT = project_root.get_project_root()
-dotenv_path = join(ROOT, '.env')
+config_path = f'{ROOT}/backend/config'
+dotenv_path = join(config_path, '.env')
 load_dotenv(dotenv_path)
 
 artifacts = f'{ROOT}/artifacts'
 
 speech_key = os.getenv("SPEECH_KEY")
 service_region = os.getenv("SERVICE_REGION")
-src_folder = os.getenv("TRANSCRIBER_SRC_FOLDER", "cut-audio-files")
+src_folder = os.getenv("TRANSCRIBER_SRC_FOLDER", "fatwa-audio-wav")
 dst_folder = os.getenv("TRANSCRIBER_DST_FOLDER", "transcriptions")
 
 try:
@@ -47,7 +48,7 @@ def check_folder():
 
 def speech_recognize_cont(audio_file, blob):
 
-    audio_file_path = f'{artifacts}//{blob}/{audio_file}'
+    audio_file_path = f'{artifacts}/{src_folder}/{blob}/{audio_file}'
     transcription_path = f'{artifacts}/{dst_folder}/{blob}/{audio_file}.txt'
     try:
         os.makedirs(os.path.dirname(transcription_path), exist_ok=True)
@@ -126,7 +127,7 @@ def speech_recognize_cont(audio_file, blob):
 
 async def transcribe(blob):
     check_folder()
-    path = f'{artifacts}/{blob}'
+    path = f'{artifacts}/{src_folder}/{blob}'
     audio_files = os.listdir(path)
     for audio_file in audio_files:
         speech_recognize_cont(audio_file, blob)

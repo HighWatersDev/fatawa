@@ -6,10 +6,11 @@ from backend.utils.project_root import get_project_root
 
 from dotenv import load_dotenv
 
-dotenv_path = join(get_project_root(), '.env')
+config_path = f'{get_project_root()}/backend/config'
+dotenv_path = join(config_path, '.env')
 load_dotenv(dotenv_path)
 
-os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = "backend/config/gcp_translate_api.json"
+os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = f'{config_path}/gcp_translate_api.json'
 project_id = os.getenv("GCP_PROJECT_ID", "salafifatawa")
 src_folder = os.getenv("TRANSCRIBER_SRC_FOLDER", "transcriptions")
 dst_folder = os.getenv("TRANSCRIBER_DST_FOLDER", "translations")

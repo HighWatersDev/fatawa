@@ -1,3 +1,5 @@
+# Need to re-work it to build fatawa from database not from text files
+
 def fatawa_template_ar(topic, title, q, a, audio_link):
     fatwa_template = f'''
 {topic}
