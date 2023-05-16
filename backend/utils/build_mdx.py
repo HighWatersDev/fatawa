@@ -43,9 +43,9 @@ def fatawa_template_en(topic, title, q, a):
 
 def build_fatawa(folder, file, audio_link):
     print("folder: ", folder, " file: ", file)
-    with open(f'transcriptions/{folder}/{file}', 'r') as file1:
+    with open(f'fatwa-transcription/{folder}/{file}', 'r') as file1:
         data = file1.readlines()
         fatawa_template_ar(topic=data[0].rstrip('\n'), title=data[1].rstrip('\n'), q=data[2].rstrip('\n'), a=data[3].rstrip('\n'), audio_link=audio_link)
-    with open(f'translations/{folder}/{file}', 'r') as file2:
+    with open(f'fatwa-translation/{folder}/{file}', 'r') as file2:
         data = file2.readlines()
         fatawa_template_en(topic=data[0].rstrip('\n'), title=data[1].rstrip('\n'), q=data[2].rstrip('\n'), a=data[3].rstrip('\n'))

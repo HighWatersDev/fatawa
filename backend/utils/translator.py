@@ -12,8 +12,8 @@ load_dotenv(dotenv_path)
 
 os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = f'{config_path}/gcp_translate_api.json'
 project_id = os.getenv("GCP_PROJECT_ID", "salafifatawa")
-src_folder = os.getenv("TRANSCRIBER_SRC_FOLDER", "transcriptions")
-dst_folder = os.getenv("TRANSCRIBER_DST_FOLDER", "translations")
+src_folder = os.getenv("TRANSCRIBER_SRC_FOLDER", "fatwa-transcription")
+dst_folder = os.getenv("TRANSCRIBER_DST_FOLDER", "fatwa-translation")
 root_path = f'{get_project_root()}/artifacts'
 
 
