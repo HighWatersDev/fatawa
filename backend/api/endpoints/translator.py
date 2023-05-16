@@ -6,7 +6,7 @@ from backend.utils import translator
 router = APIRouter()
 
 
-@router.get("/api/translate", dependencies=[Depends(validate_user)])
+@router.get("/translate", dependencies=[Depends(validate_user)])
 async def translate_fatawa(blob: str):
     response = await translator.translate_fatawa(blob)
     if response:
