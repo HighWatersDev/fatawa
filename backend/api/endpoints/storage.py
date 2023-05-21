@@ -1,7 +1,7 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends
 
 from backend.auth.validate_token import validate_user
-from backend.utils.azure_storage import DirectoryClient
+from backend.utils.azure_storage import upload_to_azure_storage, download_file, list_files
 from backend.utils import project_root
 
 router = APIRouter()
@@ -9,28 +9,19 @@ router = APIRouter()
 ROOT = project_root.get_project_root()
 
 
-@router.get("/upload", dependencies=[Depends(validate_user)])
+@router.post("/upload", dependencies=[Depends(validate_user)])
 async def upload_files(path: str):
-    container = path.rsplit("/")[0]
-    blob = path.rsplit("/")[1]
-    client = DirectoryClient(container)
-    return client.upload(path, blob)
+    blob = path.rsplit("/")[2]
+    return upload_to_azure_storage(path, blob)
 
 
 @router.get("/list", dependencies=[Depends(validate_user)])
 async def list_files(path: str):
-    container = path.rsplit("/")[0]
-    blob = '/'.join(path.rsplit("/")[1:])
-    client = DirectoryClient(container)
-    return client.ls_files(blob)
+    return list_files(path)
 
 
 @router.get("/download", dependencies=[Depends(validate_user)])
-async def list_files(path: str):
-    container = path.rsplit("/")[0]
-    blob = '/'.join(path.rsplit("/")[1:])
-    client = DirectoryClient(container)
-    dst = f'{ROOT}/artifacts'
-    response = client.download(blob, dst)
+async def download(file_path: str, destination_path: str):
+    response = download_file(file_path, destination_path)
     if response:
         return True

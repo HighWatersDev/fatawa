@@ -4,6 +4,13 @@ from os.path import join
 from azure.storage.blob import BlobServiceClient
 from backend.utils import project_root
 from dotenv import load_dotenv
+from azure.core.exceptions import (
+    ResourceExistsError,
+    ResourceNotFoundError,
+    ClientAuthenticationError,
+    HttpResponseError,
+    ServiceResponseError,
+)
 
 
 ROOT_DIR = project_root.get_project_root()
@@ -15,121 +22,72 @@ load_dotenv(dotenv_path)
 account_url = "https://fatawaaudio.blob.core.windows.net"
 connection_string = os.getenv('AZURE_STORAGE_CONNECTION_STRING')
 
+# Create a BlobServiceClient object
+blob_service_client = BlobServiceClient.from_connection_string(connection_string)
 
-class DirectoryClient:
-    def __init__(self, container_name):
-        service_client = BlobServiceClient.from_connection_string(connection_string)
-        self.client = service_client.get_container_client(container_name)
 
-    def upload(self, source, dest):
-        """
-        Upload a file or directory to a path inside the container
-        """
-        source = f'{artifacts}/{source}'
-        if os.path.isdir(source):
-            self.upload_dir(source, dest)
-        else:
-            self.upload_file(source, dest)
+# Function to upload a file or folder to Azure Storage
+def upload_to_azure_storage(path, destination):
+    container_name = path.rsplit("/")[1]
+    container_client = blob_service_client.get_container_client(container_name)
+    if os.path.isfile(path):
+        upload_file(path, destination, container_client)
+    elif os.path.isdir(path):
+        upload_folder(path, destination, container_client)
 
-    def upload_file(self, source, dest):
-        """
-        Upload a single file to a path inside the container
-        """
-        try:
-            print(f'Uploading {source} to {dest}')
-            with open(source, 'rb') as data:
-                self.client.upload_blob(name=dest, data=data)
-            return True
-        except Exception:
-            return False
 
-    def upload_dir(self, source, dest):
-        """
-        Upload a directory to a path inside the container
-        """
-        try:
-            prefix = '' if dest == '' else dest + '/'
-            prefix += os.path.basename(source) + '/'
-            for root, dirs, files in os.walk(source):
-                for name in files:
-                    dir_part = os.path.relpath(root, source)
-                    dir_part = '' if dir_part == '.' else dir_part + '/'
-                    file_path = os.path.join(root, name)
-                    blob_path = prefix + dir_part + name
-                    self.upload_file(file_path, blob_path)
-            return True
-        except Exception:
-            return False
+# Function to upload a file to Azure Storage
+def upload_file(file_path, destination_folder_name, container_client):
+    blob_name = os.path.join(destination_folder_name, os.path.basename(file_path))
+    blob_client = container_client.get_blob_client(blob_name)
+    try:
+        with open(file_path, "rb") as data:
+            blob_client.upload_blob(data)
+        print(f"Uploaded file: {file_path} to blob: {blob_name}")
+    except ResourceExistsError:
+        print(f"Blob {blob_name} already exists. Skipping upload for file: {file_path}")
+    except (ResourceNotFoundError, ClientAuthenticationError, HttpResponseError, ServiceResponseError) as ex:
+        print(f"An error occurred while uploading file: {file_path}")
+        print(f"Error details: {str(ex)}")
 
-    def download(self, source, dest):
-        """
-        Download a file or directory to a path on the local filesystem
-        """
-        if not dest:
-            raise Exception('A destination must be provided')
-        dest = f'{artifacts}/{dest}'
 
-        blobs = self.ls_files(source, recursive=True)
-        if blobs:
-            # if source is a directory, dest must also be a directory
-            if not source == '' and not source.endswith('/'):
-                source += '/'
-            if not dest.endswith('/'):
-                dest += '/'
-            # append the directory name from source to the destination
-            dest += os.path.basename(os.path.normpath(source)) + '/'
+# Function to upload a folder to Azure Storage
+def upload_folder(folder_path, destination_folder_name, container_client):
+    for root, _, files in os.walk(folder_path):
+        for file in files:
+            local_file_path = os.path.join(root, file)
+            destination_blob_name = os.path.join(destination_folder_name, local_file_path[len(folder_path) + 1:])
+            upload_file(local_file_path, destination_blob_name, container_client)
+    print(f"Uploaded folder: {folder_path} to blob: {destination_folder_name}")
 
-            blobs = [source + blob for blob in blobs]
-            for blob in blobs:
-                blob_dest = dest + os.path.relpath(blob, source)
-                self.download_file(blob, blob_dest)
-        else:
-            self.download_file(source, dest)
 
-    def download_file(self, source, dest):
-        """
-        Download a single file to a path on the local filesystem
-        """
-        # dest is a directory if ending with '/' or '.', otherwise it's a file
-        if dest.endswith('.'):
-            dest += '/'
-        blob_dest = dest + os.path.basename(source) if dest.endswith('/') else dest
+# Function to download a file from Azure Storage
+def download_file(blob_path, destination):
+    container_name = blob_path.rsplit("/")[1]
+    container_client = blob_service_client.get_container_client(container_name)
+    local_file_path = os.path.join(destination, os.path.basename(blob_path))
+    blob_client = container_client.get_blob_client(blob_path)
+    try:
+        with open(local_file_path, "wb") as file:
+            data = blob_client.download_blob()
+            data.readinto(file)
+        print(f"Downloaded blob: {blob_path} to file: {local_file_path}")
+    except (ResourceNotFoundError, ClientAuthenticationError, HttpResponseError, ServiceResponseError) as ex:
+        print(f"An error occurred while downloading blob: {blob_path}")
+        print(f"Error details: {str(ex)}")
 
-        print(f'Downloading {source} to {blob_dest}')
-        os.makedirs(os.path.dirname(blob_dest), exist_ok=True)
-        bc = self.client.get_blob_client(blob=source)
-        if not dest.endswith('/'):
-            with open(blob_dest, 'wb') as file:
-                data = bc.download_blob()
-                file.write(data.readall())
 
-    def ls_files(self, path, recursive=False):
-        """
-        List files under a path, optionally recursively
-        """
-        if not path == '' and not path.endswith('/'):
-            path += '/'
-
-        blob_iter = self.client.list_blobs(name_starts_with=path)
-        files = []
-        for blob in blob_iter:
-            relative_path = os.path.relpath(blob.name, path)
-            if recursive or not '/' in relative_path:
-                files.append(relative_path)
-        return files
-
-    def ls_dirs(self, path, recursive=False):
-        """
-        List directories under a path, optionally recursively
-        """
-        if not path == '' and not path.endswith('/'):
-            path += '/'
-
-        blob_iter = self.client.list_blobs(name_starts_with=path)
-        dirs = []
-        for blob in blob_iter:
-            relative_dir = os.path.dirname(os.path.relpath(blob.name, path))
-            if relative_dir and (recursive or not '/' in relative_dir) and not relative_dir in dirs:
-                dirs.append(relative_dir)
-
-        return dirs
+# Function to list files inside a blob
+def list_files(blob):
+    container_name = blob.rsplit("/")[0]
+    container_client = blob_service_client.get_container_client(container_name)
+    blob_name = blob.rsplit("/")[1]
+    blob_client = container_client.get_blob_client(blob_name)
+    try:
+        blob_client.get_blob_properties()
+        print(f"Files inside blob: {blob_name}:")
+        for blob in container_client.list_blobs(name_starts_with=blob_name):
+            print(blob.name)
+    except (ResourceNotFoundError, ClientAuthenticationError, HttpResponseError, ServiceResponseError) as ex:
+        print(f"An error occurred while listing files in blob: {blob_name}")
+        print(f"Error details: {str(ex)}")
