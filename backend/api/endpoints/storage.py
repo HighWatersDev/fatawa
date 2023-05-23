@@ -16,8 +16,12 @@ async def upload_files(path: str):
 
 
 @router.get("/list", dependencies=[Depends(validate_user)])
-async def list_files(path: str):
-    return list_files(path)
+async def list_blob(path: str):
+    file_list = list_files(path)
+    if file_list is None:
+        # Handle the error condition
+        return {"message": "An error occurred while listing files in blob"}
+    return {"files": file_list}
 
 
 @router.get("/download", dependencies=[Depends(validate_user)])

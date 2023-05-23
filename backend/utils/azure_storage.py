@@ -3,6 +3,8 @@ import os
 from os.path import join
 from azure.storage.blob import BlobServiceClient
 from backend.utils import project_root
+import logging
+from backend.config.logging_config import logging_config
 from dotenv import load_dotenv
 from azure.core.exceptions import (
     ResourceExistsError,
@@ -12,6 +14,8 @@ from azure.core.exceptions import (
     ServiceResponseError,
 )
 
+logging.basicConfig(**logging_config())
+logger = logging.getLogger(__name__)
 
 ROOT_DIR = project_root.get_project_root()
 artifacts = f'{ROOT_DIR}/artifacts'
@@ -43,12 +47,12 @@ def upload_file(file_path, destination_folder_name, container_client):
     try:
         with open(file_path, "rb") as data:
             blob_client.upload_blob(data)
-        print(f"Uploaded file: {file_path} to blob: {blob_name}")
+        logger.info(f"Uploaded file: {file_path} to blob: {blob_name}")
     except ResourceExistsError:
-        print(f"Blob {blob_name} already exists. Skipping upload for file: {file_path}")
+        logger.error(f"Blob {blob_name} already exists. Skipping upload for file: {file_path}")
     except (ResourceNotFoundError, ClientAuthenticationError, HttpResponseError, ServiceResponseError) as ex:
-        print(f"An error occurred while uploading file: {file_path}")
-        print(f"Error details: {str(ex)}")
+        logger.error(f"An error occurred while uploading file: {file_path}")
+        logger.error(f"Error details: {str(ex)}")
 
 
 # Function to upload a folder to Azure Storage
@@ -58,7 +62,7 @@ def upload_folder(folder_path, destination_folder_name, container_client):
             local_file_path = os.path.join(root, file)
             destination_blob_name = os.path.join(destination_folder_name, local_file_path[len(folder_path) + 1:])
             upload_file(local_file_path, destination_blob_name, container_client)
-    print(f"Uploaded folder: {folder_path} to blob: {destination_folder_name}")
+    logger.info(f"Uploaded folder: {folder_path} to blob: {destination_folder_name}")
 
 
 # Function to download a file from Azure Storage
@@ -71,23 +75,26 @@ def download_file(blob_path, destination):
         with open(local_file_path, "wb") as file:
             data = blob_client.download_blob()
             data.readinto(file)
-        print(f"Downloaded blob: {blob_path} to file: {local_file_path}")
+        logger.info(f"Downloaded blob: {blob_path} to file: {local_file_path}")
     except (ResourceNotFoundError, ClientAuthenticationError, HttpResponseError, ServiceResponseError) as ex:
-        print(f"An error occurred while downloading blob: {blob_path}")
-        print(f"Error details: {str(ex)}")
+        logger.error(f"An error occurred while downloading blob: {blob_path}")
+        logger.error(f"Error details: {str(ex)}")
 
 
 # Function to list files inside a blob
-def list_files(blob):
-    container_name = blob.rsplit("/")[0]
+def list_files(blob_path):
+    container_name = blob_path.rsplit("/")[0]
+    blob_name = blob_path.rsplit("/")[1]
     container_client = blob_service_client.get_container_client(container_name)
-    blob_name = blob.rsplit("/")[1]
-    blob_client = container_client.get_blob_client(blob_name)
     try:
-        blob_client.get_blob_properties()
-        print(f"Files inside blob: {blob_name}:")
-        for blob in container_client.list_blobs(name_starts_with=blob_name):
-            print(blob.name)
+        blob_list = container_client.list_blobs(name_starts_with=blob_name)
+        file_list = []
+        for blob in blob_list:
+            logger.info(f"Name: {blob['name']}, Tags: {blob['tags']}")
+            file_list.append(blob['name'])
+
+        return file_list
     except (ResourceNotFoundError, ClientAuthenticationError, HttpResponseError, ServiceResponseError) as ex:
-        print(f"An error occurred while listing files in blob: {blob_name}")
-        print(f"Error details: {str(ex)}")
+        logger.error(f"An error occurred while listing files in blob: {blob_path}")
+        logger.error(f"Error details: {str(ex)}")
+        return ["An error occurred while listing files in blob."]
