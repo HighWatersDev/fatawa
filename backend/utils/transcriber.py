@@ -20,7 +20,7 @@ artifacts = f'{ROOT}/artifacts'
 speech_key = os.getenv("SPEECH_KEY")
 service_region = os.getenv("SERVICE_REGION")
 src_folder = os.getenv("TRANSCRIBER_SRC_FOLDER", "fatwa-audio-wav")
-dst_folder = os.getenv("TRANSCRIBER_DST_FOLDER", "transcriptions")
+dst_folder = os.getenv("TRANSCRIBER_DST_FOLDER", "fatwa-transcription")
 
 try:
     import azure.cognitiveservices.speech as speechsdk

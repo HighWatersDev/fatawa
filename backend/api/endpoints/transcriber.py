@@ -6,7 +6,7 @@ from backend.utils import transcriber
 router = APIRouter()
 
 
-@router.get("/api/transcribe", dependencies=[Depends(validate_user)])
+@router.get("/transcribe", dependencies=[Depends(validate_user)])
 async def transcribe_fatawa(blob: str):
     response = await transcriber.transcribe(blob)
     if response:
