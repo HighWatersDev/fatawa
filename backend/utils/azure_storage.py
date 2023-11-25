@@ -1,4 +1,3 @@
-from pathlib import Path
 import os
 from os.path import join
 from azure.storage.blob import BlobServiceClient
@@ -23,7 +22,7 @@ config_path = f'/{ROOT_DIR}/backend/config'
 dotenv_path = join(config_path, '.env')
 load_dotenv(dotenv_path)
 
-account_url = "https://fatawaaudio.blob.core.windows.net"
+account_url = "https://fatawastorage.blob.core.windows.net"
 connection_string = os.getenv('AZURE_STORAGE_CONNECTION_STRING')
 
 # Create a BlobServiceClient object
@@ -67,16 +66,18 @@ def upload_folder(folder_path, destination_folder_name, container_client):
 
 # Function to download a file from Azure Storage
 def download_file(blob_path, destination):
-    container_name = blob_path.rsplit("/")[1]
+    container_name, blob_name = blob_path.split("/", 1)
     container_client = blob_service_client.get_container_client(container_name)
     local_file_path = os.path.join(destination, os.path.basename(blob_path))
-    blob_client = container_client.get_blob_client(blob_path)
+    blob_client = container_client.get_blob_client(blob_name)
     try:
         with open(local_file_path, "wb") as file:
-            data = blob_client.download_blob()
-            data.readinto(file)
-        logger.info(f"Downloaded blob: {blob_path} to file: {local_file_path}")
-    except (ResourceNotFoundError, ClientAuthenticationError, HttpResponseError, ServiceResponseError) as ex:
+            blob_client.download_blob().download_to_stream(file)
+        logger.debug(f"Downloaded blob: {blob_path} to file: {local_file_path}")
+    except ResourceNotFoundError as ex:
+        logger.error(f"Blob not found: {blob_path}")
+        logger.error(f"Error details: {str(ex)}")
+    except (ClientAuthenticationError, HttpResponseError, ServiceResponseError) as ex:
         logger.error(f"An error occurred while downloading blob: {blob_path}")
         logger.error(f"Error details: {str(ex)}")
 

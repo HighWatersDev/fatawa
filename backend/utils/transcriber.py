@@ -19,7 +19,7 @@ artifacts = f'{ROOT}/artifacts'
 
 speech_key = os.getenv("SPEECH_KEY")
 service_region = os.getenv("SERVICE_REGION")
-src_folder = os.getenv("TRANSCRIBER_SRC_FOLDER", "fatwa-audio-wav")
+src_folder = os.getenv("TRANSCRIBER_SRC_FOLDER", "fatawa-audio-wav")
 dst_folder = os.getenv("TRANSCRIBER_DST_FOLDER", "fatwa-transcription")
 
 try:

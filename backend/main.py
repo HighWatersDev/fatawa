@@ -5,7 +5,6 @@ from backend.api.api import api_router
 from fastapi import FastAPI
 from starlette.middleware.cors import CORSMiddleware
 
-
 app = FastAPI(openapi_url="/api/v1/openapi.json")
 
 
