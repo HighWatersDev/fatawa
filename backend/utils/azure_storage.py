@@ -68,7 +68,10 @@ def upload_folder(folder_path, destination_folder_name, container_client):
 def download_file(blob_path, destination):
     container_name, blob_name = blob_path.split("/", 1)
     container_client = blob_service_client.get_container_client(container_name)
-    local_file_path = os.path.join(destination, os.path.basename(blob_path))
+    blob_dir, blob_filename = os.path.split(blob_path)
+    local_dir = os.path.join(destination, blob_dir)
+    os.makedirs(local_dir, exist_ok=True)
+    local_file_path = os.path.join(local_dir, os.path.basename(blob_path))
     blob_client = container_client.get_blob_client(blob_name)
     try:
         with open(local_file_path, "wb") as file:
