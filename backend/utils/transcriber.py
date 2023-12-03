@@ -19,8 +19,8 @@ artifacts = f'{ROOT}/artifacts'
 
 speech_key = os.getenv("SPEECH_KEY")
 service_region = os.getenv("SERVICE_REGION")
-src_folder = os.getenv("TRANSCRIBER_SRC_FOLDER", "fatwa-audio-wav")
-dst_folder = os.getenv("TRANSCRIBER_DST_FOLDER", "fatwa-transcription")
+src_folder = "fatawa-audio-wav"
+dst_folder = "transcriptions"
 
 try:
     import azure.cognitiveservices.speech as speechsdk
@@ -126,8 +126,10 @@ def speech_recognize_cont(audio_file, blob):
 
 
 async def transcribe(blob):
-    check_folder()
+    print("Blob: ", blob)
+    #check_folder()
     path = f'{artifacts}/{src_folder}/{blob}'
+    print("Path: ", path)
     audio_files = os.listdir(path)
     for audio_file in audio_files:
         speech_recognize_cont(audio_file, blob)
