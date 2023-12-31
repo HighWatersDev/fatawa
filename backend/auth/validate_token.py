@@ -5,7 +5,7 @@ from firebase_admin import auth, credentials
 from firebase_admin.auth import ExpiredIdTokenError, InvalidIdTokenError
 
 # Initialize Firebase Admin SDK
-cred = credentials.Certificate("backend/config/salafifatawa-firebase-adminsdk-m8seu-4dfd23f01f.json")
+cred = credentials.Certificate("backend/config/salafifatawa-firebase-adminsdk.json")
 firebase_admin.initialize_app(cred)
 
 # Initialize FastAPI app

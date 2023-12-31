@@ -10,9 +10,8 @@ ROOT = project_root.get_project_root()
 
 
 @router.post("/upload", dependencies=[Depends(validate_user)])
-async def upload_files(path: str):
-    blob = path.rsplit("/")[2]
-    return upload_to_azure_storage(path, blob)
+async def upload_files(path: str, author: str, artifact: bool):
+    return upload_to_azure_storage(path, author, artifact)
 
 
 @router.get("/list", dependencies=[Depends(validate_user)])
@@ -25,7 +24,7 @@ async def list_blob(path: str):
 
 
 @router.get("/download", dependencies=[Depends(validate_user)])
-async def download(file_path: str, destination_path: str):
-    response = download_file(file_path, destination_path)
+async def download(file_path: str, author: str):
+    response = download_file(file_path, author)
     if response:
         return True

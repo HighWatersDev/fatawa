@@ -3,6 +3,7 @@ from os.path import join
 from azure.storage.blob import BlobServiceClient
 from backend.utils import project_root
 import logging
+import uuid
 from backend.config.logging_config import logging_config
 from dotenv import load_dotenv
 from azure.core.exceptions import (
@@ -29,26 +30,45 @@ connection_string = os.getenv('AZURE_STORAGE_CONNECTION_STRING')
 blob_service_client = BlobServiceClient.from_connection_string(connection_string)
 
 
+def generate_id():
+    # Generate a UUID
+    unique_id = str(uuid.uuid4())
+    # Replace hyphens with underscores to ensure filesystem compatibility
+    safe_id = unique_id.replace('-', '')
+    return safe_id
+
+
 # Function to upload a file or folder to Azure Storage
-def upload_to_azure_storage(path, destination):
-    container_name = path.rsplit("/")[1]
+def upload_to_azure_storage(path, author, artifact):
+    if artifact:
+        destination_folder_name = author
+        container_name = "artifacts"
+    else:
+        destination_folder_name = author
+        container_name = "uploads"
     container_client = blob_service_client.get_container_client(container_name)
     if os.path.isfile(path):
-        upload_file(path, destination, container_client)
+        upload_file(path, destination_folder_name, container_client)
     elif os.path.isdir(path):
-        upload_folder(path, destination, container_client)
+        upload_folder(path, destination_folder_name, container_client)
 
 
 # Function to upload a file to Azure Storage
 def upload_file(file_path, destination_folder_name, container_client):
-    blob_name = os.path.join(destination_folder_name, os.path.basename(file_path))
-    blob_client = container_client.get_blob_client(blob_name)
+    original_extension = os.path.splitext(file_path)[1]
+    new_file_name = generate_id() + original_extension
+    print(new_file_name)
+    print(destination_folder_name)
+
+    blob_path = f'{destination_folder_name}/{new_file_name}'
+    print(blob_path)
+    blob_client = container_client.get_blob_client(blob_path)
     try:
         with open(file_path, "rb") as data:
             blob_client.upload_blob(data)
-        logger.info(f"Uploaded file: {file_path} to blob: {blob_name}")
+        logger.info(f"Uploaded file: {file_path} to blob: {destination_folder_name}")
     except ResourceExistsError:
-        logger.error(f"Blob {blob_name} already exists. Skipping upload for file: {file_path}")
+        logger.error(f"Blob {destination_folder_name} already exists. Skipping upload for file: {file_path}")
     except (ResourceNotFoundError, ClientAuthenticationError, HttpResponseError, ServiceResponseError) as ex:
         logger.error(f"An error occurred while uploading file: {file_path}")
         logger.error(f"Error details: {str(ex)}")
@@ -65,13 +85,12 @@ def upload_folder(folder_path, destination_folder_name, container_client):
 
 
 # Function to download a file from Azure Storage
-def download_file(blob_path, destination):
+def download_file(blob_path, author):
     container_name, blob_name = blob_path.split("/", 1)
     container_client = blob_service_client.get_container_client(container_name)
-    blob_dir, blob_filename = os.path.split(blob_path)
-    local_dir = os.path.join(destination, blob_dir)
-    os.makedirs(local_dir, exist_ok=True)
-    local_file_path = os.path.join(local_dir, os.path.basename(blob_path))
+    local_path = os.path.join(artifacts, author)
+    os.makedirs(local_path, exist_ok=True)
+    local_file_path = os.path.join(local_path, os.path.basename(blob_path))
     blob_client = container_client.get_blob_client(blob_name)
     try:
         with open(local_file_path, "wb") as file:
@@ -87,15 +106,17 @@ def download_file(blob_path, destination):
 
 # Function to list files inside a blob
 def list_files(blob_path):
-    container_name = blob_path.rsplit("/")[0]
-    blob_name = blob_path.rsplit("/")[1]
+    container_name = blob_path.split("/")[0]
+    blob_name = '/'.join(blob_path.split("/")[1:])  # Get the rest of the path after the container name
+
     container_client = blob_service_client.get_container_client(container_name)
     try:
         blob_list = container_client.list_blobs(name_starts_with=blob_name)
         file_list = []
         for blob in blob_list:
-            logger.info(f"Name: {blob['name']}, Tags: {blob['tags']}")
-            file_list.append(blob['name'])
+            file_name = os.path.basename(blob.name)  # Extracts just the file name
+            logger.info(f"Name: {blob.name}, Tags: {blob.tags}")
+            file_list.append(file_name)
 
         return file_list
     except (ResourceNotFoundError, ClientAuthenticationError, HttpResponseError, ServiceResponseError) as ex:

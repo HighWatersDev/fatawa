@@ -4,6 +4,7 @@ import time
 import threading
 import wave
 import uuid
+from docx import Document
 import os
 from os.path import join, dirname
 from backend.utils import project_root
@@ -46,6 +47,17 @@ def check_folder():
             print(f'{folder} exists. Carrying on...')
 
 
+def write_to_word_file(file_path, text):
+    # Create a new Word document
+    doc = Document()
+
+    # Add text to the document
+    doc.add_paragraph(text)
+
+    # Save the document
+    doc.save(file_path)
+
+
 def speech_recognize_cont(audio_file, blob):
 
     audio_file_path = f'{artifacts}/{src_folder}/{blob}/{audio_file}'
@@ -73,6 +85,7 @@ def speech_recognize_cont(audio_file, blob):
             print("Recognized: {}".format(evt))
             print("Offset: {}".format(evt.result.offset))
             text.append(evt.result.text)
+            write_to_word_file(transcription_path, evt.result.text)
             with open(transcription_path, "a") as f:
                 f.write(evt.result.text)
         elif evt.result.reason == speechsdk.ResultReason.NoMatch:
