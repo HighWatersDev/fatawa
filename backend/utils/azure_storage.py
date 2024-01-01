@@ -5,6 +5,7 @@ from backend.utils import project_root
 import logging
 import uuid
 from backend.config.logging_config import logging_config
+from backend.db.wrapper import create_document, get_document_by_id
 from dotenv import load_dotenv
 from azure.core.exceptions import (
     ResourceExistsError,
@@ -39,31 +40,31 @@ def generate_id():
 
 
 # Function to upload a file or folder to Azure Storage
-def upload_to_azure_storage(path, author, artifact):
-    if artifact:
-        destination_folder_name = author
-        container_name = "artifacts"
-    else:
-        destination_folder_name = author
-        container_name = "uploads"
+def upload_to_azure_storage(path, author):
+    random_id = generate_id()
+    destination_folder_name = f'{author}/{random_id}'
+    container_name = "artifacts"
     container_client = blob_service_client.get_container_client(container_name)
     if os.path.isfile(path):
-        upload_file(path, destination_folder_name, container_client)
+        upload_file(path, destination_folder_name, random_id, author, container_client)
     elif os.path.isdir(path):
-        upload_folder(path, destination_folder_name, container_client)
+        upload_folder(path, destination_folder_name, random_id, author, container_client)
 
 
 # Function to upload a file to Azure Storage
-def upload_file(file_path, destination_folder_name, container_client):
+def upload_file(file_path, destination_folder_name, random_id, author, container_client):
     original_extension = os.path.splitext(file_path)[1]
-    new_file_name = generate_id() + original_extension
-    print(new_file_name)
-    print(destination_folder_name)
+    new_file_name = random_id + original_extension
 
     blob_path = f'{destination_folder_name}/{new_file_name}'
-    print(blob_path)
     blob_client = container_client.get_blob_client(blob_path)
     try:
+        check_document = get_document_by_id(random_id)
+        document_data = {
+            "author": author
+        }
+        if check_document.status_code == 404:
+            create_document(random_id, document_data)
         with open(file_path, "rb") as data:
             blob_client.upload_blob(data)
         logger.info(f"Uploaded file: {file_path} to blob: {destination_folder_name}")
@@ -75,12 +76,12 @@ def upload_file(file_path, destination_folder_name, container_client):
 
 
 # Function to upload a folder to Azure Storage
-def upload_folder(folder_path, destination_folder_name, container_client):
+def upload_folder(folder_path, destination_folder_name, random_id, author, container_client):
     for root, _, files in os.walk(folder_path):
         for file in files:
             local_file_path = os.path.join(root, file)
             destination_blob_name = os.path.join(destination_folder_name, local_file_path[len(folder_path) + 1:])
-            upload_file(local_file_path, destination_blob_name, container_client)
+            upload_file(local_file_path, destination_blob_name, random_id, author, container_client)
     logger.info(f"Uploaded folder: {folder_path} to blob: {destination_folder_name}")
 
 

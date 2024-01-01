@@ -10,8 +10,8 @@ ROOT = project_root.get_project_root()
 
 
 @router.post("/upload", dependencies=[Depends(validate_user)])
-async def upload_files(path: str, author: str, artifact: bool):
-    return upload_to_azure_storage(path, author, artifact)
+async def upload_files(path: str, author: str):
+    return upload_to_azure_storage(path, author)
 
 
 @router.get("/list", dependencies=[Depends(validate_user)])
