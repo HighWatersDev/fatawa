@@ -3,8 +3,8 @@ from os.path import join
 from azure.storage.blob import BlobServiceClient
 from backend.utils import project_root
 import logging
-import uuid
 from backend.config.logging_config import logging_config
+import uuid
 from backend.db.wrapper import create_document, get_document_by_id
 from dotenv import load_dotenv
 from azure.core.exceptions import (
